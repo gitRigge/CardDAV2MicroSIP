@@ -27,6 +27,8 @@
 # Requirements:
 # This script requires the CardDAV CLI client pyCardDAV to be installed!
 # Get it from here: https://github.com/geier/pycarddav
+#
+# This script generates Contacts.xml valid for MicroSIP VoIP client v3.10.5
 # ---------------------------------------------------------------------------
 
 import subprocess

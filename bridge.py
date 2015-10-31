@@ -1,4 +1,3 @@
-
 # The MIT License (MIT)
 # 
 # Copyright (c) 2015, Roland Rickborn (r_2@gmx.net)
@@ -28,7 +27,7 @@
 # This script requires the CardDAV CLI client pyCardDAV to be installed!
 # Get it from here: https://github.com/geier/pycarddav
 #
-# This script generates Contacts.xml valid for MicroSIP VoIP client v3.10.5
+# This script generates Contacts.xml valid for MicroSIP VoIP client v3.10
 # ---------------------------------------------------------------------------
 
 import subprocess
@@ -42,22 +41,25 @@ __author__ = 'Roland Rickborn'
 ### DO SOME CHANGES BELOW THIS LINE ###
 #######################################
 # Settings
-myLocalCountryCode = "+1"
+myLocalCountryCode = "+49"
 catHome = "Home"
-catMobile = "Mobile"
-catWork = "Work"
-microSipDataPath = "%APPDATA%\MicroSIP"
+catMobile = "Mobil"
+catWork = "Arbeit"
+cfgFile = "pycard.conf"
 #######################################
 ### DO SOME CHANGES ABOVE THIS LINE ###
 #######################################
 
+# Path to MicroSIP XML file
+microSipDataPath = os.environ['APPDATA']+"\MicroSIP"
+
 # Sync data
 subprocess.call(['c:\Python27\python.exe','c:\Python27\Scripts\pycardsyncer',
-                                  '-c','pycard.conf'])
+                                  '-c',cfgFile])
 
 # Read data
 retval = subprocess.check_output(['c:\Python27\python.exe','c:\Python27\Scripts\pc_query',
-                                  '-c','pycard.conf','-A'])
+                                  '-c',cfgFile,'-A'])
 
 # Split initial welcome text
 tmp = string.split(retval,"searching for ...\r\n")
@@ -94,6 +96,8 @@ for item1 in contact_raw:
                     tmp = string.split(item2,":")
                     telwork_raw = string.replace(tmp[1]," ","")
                     telwork_raw = string.replace(telwork_raw,"-","")
+                    telwork_raw = string.replace(telwork_raw,"(","")
+                    telwork_raw = string.replace(telwork_raw,")","")
                     telwork_raw = "%s %s" % (telwork_raw[0:3],telwork_raw[3:])
                     telwork = string.replace(telwork_raw,countryCodeReplacement,"0")
                     if len(telwork) > 3:
@@ -102,6 +106,8 @@ for item1 in contact_raw:
                     tmp = string.split(item2,":")
                     telmobil_raw = string.replace(tmp[1]," ","")
                     telmobil_raw = string.replace(telmobil_raw,"-","")
+                    telmobil_raw = string.replace(telmobil_raw,"(","")
+                    telmobil_raw = string.replace(telmobil_raw,")","")
                     telmobil_raw = "%s %s" % (telmobil_raw[0:3],telmobil_raw[3:])
                     telmobil = string.replace(telmobil_raw,countryCodeReplacement,"0")
                     if len(telmobil) > 3:
@@ -110,6 +116,8 @@ for item1 in contact_raw:
                     tmp = string.split(item2,":")
                     telhome_raw = string.replace(tmp[1]," ","")
                     telhome_raw = string.replace(telhome_raw,"-","")
+                    telhome_raw = string.replace(telhome_raw,"(","")
+                    telhome_raw = string.replace(telhome_raw,")","")
                     telhome_raw = "%s %s" % (telhome_raw[0:3],telhome_raw[3:])
                     telhome = string.replace(telhome_raw,countryCodeReplacement,"0")
                     if len(telhome) > 3:

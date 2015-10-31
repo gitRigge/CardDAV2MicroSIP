@@ -30,8 +30,13 @@ __author__ = 'Roland Rickborn'
 
 sys.argv.append('py2exe')
 
-setup(
-    options = {'py2exe': {'bundle_files': 1, 'compressed': True}},
-    windows = [{'script': "bridge.py"}],
+setup(name='CardDAV2MicroSIP',
+    version='1.0',
+    description='A bridge from cardDAV to the VoIP client MicroSIP',
+    author='Roland Rickborn',
+    author_email='r_2@gmx.net',
+    url='https://github.com/gitRigge/CardDAV2MicroSIP',
+    options = {'py2exe': {'bundle_files': 1, 'compressed': True, 'optimize': 2}},
+    windows = [{'script': 'bridge.py'}],
     zipfile = None,
 )

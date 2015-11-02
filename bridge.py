@@ -68,6 +68,7 @@ tmp = string.replace(tmp[1],"\r","")
 # Get raw contact data
 contact_raw = string.split(tmp,"Name: ")
 
+
 # Destill required contact data
 countryCodeReplacement = myLocalCountryCode + " "
 contacts = []
@@ -76,6 +77,9 @@ for item1 in contact_raw:
         has_phone_work = 0
         has_phone_mobil = 0
         has_phone_home = 0
+        is_pref_work = 0
+        is_pref_mobil = 0
+        is_pref_home = 0
         telhome = 0
         telmobil = 0
         telwork = 0
@@ -92,7 +96,7 @@ for item1 in contact_raw:
             nachname = name_raw.strip()
         for item2 in tmp_item:
             if item2.startswith("TEL"):
-                if item2.find("WORK") >= 0 and item2.find("VOICE") >= 0:
+                if item2.find("WORK") >= 0 and is_pref_work == 0:
                     tmp = string.split(item2,":")
                     telwork_raw = string.replace(tmp[1]," ","")
                     telwork_raw = string.replace(telwork_raw,"-","")
@@ -102,7 +106,9 @@ for item1 in contact_raw:
                     telwork = string.replace(telwork_raw,countryCodeReplacement,"0")
                     if len(telwork) > 3:
                         has_phone_work = 1
-                elif item2.find("CELL") >= 0 and item2.find("VOICE") >= 0:
+                    if item2.find("PREF") >= 0:
+                        is_pref_work = 1
+                elif item2.find("CELL") >= 0 and is_pref_mobil == 0:
                     tmp = string.split(item2,":")
                     telmobil_raw = string.replace(tmp[1]," ","")
                     telmobil_raw = string.replace(telmobil_raw,"-","")
@@ -112,7 +118,9 @@ for item1 in contact_raw:
                     telmobil = string.replace(telmobil_raw,countryCodeReplacement,"0")
                     if len(telmobil) > 3:
                         has_phone_mobil = 1
-                elif item2.find("HOME") >= 0 and item2.find("VOICE") >= 0:
+                    if item2.find("PREF") >= 0:
+                        is_pref_mobil = 1
+                elif item2.find("HOME") >= 0 and is_pref_home == 0:
                     tmp = string.split(item2,":")
                     telhome_raw = string.replace(tmp[1]," ","")
                     telhome_raw = string.replace(telhome_raw,"-","")
@@ -122,6 +130,8 @@ for item1 in contact_raw:
                     telhome = string.replace(telhome_raw,countryCodeReplacement,"0")
                     if len(telhome) > 3:
                         has_phone_home = 1
+                    if item2.find("PREF") >= 0:
+                        is_pref_home = 1
             elif item2.startswith("ORG"):
                 tmp = string.split(item2,":")
                 org_raw = string.replace(tmp[1],";","")

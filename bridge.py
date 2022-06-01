@@ -34,10 +34,11 @@
 
 import requests
 import os
-import sys
 import configparser
+import vobject
 
 from requests.auth import HTTPBasicAuth
+
 microSipDataPath = os.environ['APPDATA']+"\MicroSIP"
 bridgeDataPath = os.environ['LOCALAPPDATA']+"\CardDAV2MicroSIP"
 config = configparser.ConfigParser()
@@ -67,32 +68,21 @@ def get():
     return contents
 
 def create_cards_list(file_content):
-    return str(file_content).replace('\\r\\n','\n').split("END:VCARD")
+    _l = str(file_content).replace('\\r\\n','\n').split('END:VCARD')
+    _l.pop(-1)
+    cards = []
+    for i in _l:
+        v = vobject.readOne(i+'END:VCARD\n')
+        try:
+            _o = v.org.value
+        except:
+            v.add('org').value = ['']
+        cards.append(v)
+    return cards
 
-def read_card(item):
-    info = {}
-    lines = item.replace('\n ','').split('\n')
-    tup_lin = [tuple(li.split(":")) for li in lines]
-    for d in tup_lin:
-        if str(d[0]) == 'FN':
-            info["Fullname"] = str(d[1]).strip()
-        elif str(d[0]) == 'ORG':
-            _org = str(d[1]).replace(';','').strip()
-            if _org != '':
-                info["Organisation"] = _org
-        elif str(d[0]).upper().startswith('TEL'):
-            teltypes = d[0].upper()
-            if teltypes.find('WORK', 0, len(teltypes)):
-                info["WorkTel"] = str(d[1]).replace('+49','0').replace(' ' ,'').replace('-' ,'').replace('(' ,'').replace(')' ,'').strip()
-            elif teltypes.find('CELL', 0, len(teltypes)):
-                info["MobileTel"] = str(d[1]).replace('+49','0').replace(' ' ,'').replace('-' ,'').replace('(' ,'').replace(')' ,'').strip()
-            elif teltypes.find('HOME', 0, len(teltypes)):
-                info["HomeTel"] = str(d[1]).replace('+49','0').replace(' ' ,'').replace('-' ,'').replace('(' ,'').replace(')' ,'').strip()
-        elif str(d[0]).upper().startswith('ITEMTEL'):
-            teltypes = str(d[0]).upper().split('.')
-            if 'TEL' in teltypes:
-                info["Tel"] = str(d[1]).replace('+49','0').replace(' ' ,'').replace('-' ,'').replace('(' ,'').replace(')' ,'').strip()
-    return info
+def nice_number(phone_number):
+    nice_phone_number = phone_number.replace('+49','0').replace(' ' ,'').replace('-' ,'').replace('(' ,'').replace(')' ,'').strip()
+    return nice_phone_number
 
 def export_to_xml(items):
     f = open(os.path.join(microSipDataPath, 'Contacts.xml'), 'w', encoding='utf8')
@@ -100,36 +90,28 @@ def export_to_xml(items):
     f.write('<?xml version="1.0"?>\n')
     f.write('<contacts>\n')
     for item in items:
-        if "Organisation" in item:
-            if not item["Organisation"] == item["Fullname"]:
-                _org = item["Organisation"] + ', '
+        try:
+            if item.org.value[0] != '':
+                _org = '{}, '.format(item.org.value[0])
             else:
                 _org = ''
-        else:
-            _org = ''
-        if "WorkTel" in item:
-            f.write('<contact number="{}" name="{} ({}Work)" presence="0" directory="0" ></contact>\n'.format(item["WorkTel"], item["Fullname"], _org))
-        if "MobileTel" in item:
-            f.write('<contact number="{}"  name="{} ({}Mobile)" presence="0" directory="0" ></contact>\n'.format(item["MobileTel"], item["Fullname"], _org))
-        if "HomeTel" in item:
-            f.write('<contact number="{}"  name="{} ({}Home)" presence="0" directory="0" ></contact>\n'.format(item["HomeTel"], item["Fullname"], _org))
-        if "Tel" in item:
-            f.write('<contact number="{}"  name="{} ({}Voice)" presence="0" directory="0" ></contact>\n'.format(item["Tel"], item["Fullname"], _org))
+            for tel in item.tel_list:
+                if tel.type_param == 'HOME':
+                    f.write('<contact number="{}"  name="{} ({}Home)" presence="0" directory="0" ></contact>\n'.format(nice_number(tel.value), item.fn.value, _org))
+                elif tel.type_param == 'WORK':
+                    f.write('<contact number="{}" name="{} ({}Work)" presence="0" directory="0" ></contact>\n'.format(nice_number(tel.value), item.fn.value, _org))
+                elif tel.type_param == 'CELL':
+                    f.write('<contact number="{}"  name="{} ({}Mobile)" presence="0" directory="0" ></contact>\n'.format(nice_number(tel.value), item.fn.value, _org))
+                else:
+                    f.write('<contact number="{}"  name="{} ({}Voice)" presence="0" directory="0" ></contact>\n'.format(nice_number(tel.value), item.fn.value, _org))
+        except:
+            continue
     f.write('</contacts>\n')
     f.close()
 
 def convert(fileName):
     card_list = create_cards_list(fileName)
-    d_list = [read_card(item) for item in card_list]
-    export_to_xml(d_list)
-
-def main_is_frozen():
-    return (hasattr(sys, "frozen") or hasattr(sys, "importers"))
-
-def get_main_dir():
-    if main_is_frozen():
-        return os.path.dirname(sys.executable)
-    return os.path.dirname(sys.argv[0])
+    export_to_xml(card_list)
 
 vcf = get()
 convert(vcf)

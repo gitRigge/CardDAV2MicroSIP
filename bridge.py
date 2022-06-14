@@ -24,10 +24,7 @@
 #
 # Revision history:
 # 2021-03-25  Created
-#
-# Requirements:
-# This script requires the CardDAV CLI client pyCardDAV to be installed!
-# Get it from here: https://github.com/geier/pycarddav
+# 2022-05-02  Replaced pyCardDAV with vobject
 #
 # This script generates Contacts.xml valid for MicroSIP VoIP client v3.10
 # ---------------------------------------------------------------------------
@@ -63,8 +60,11 @@ def get():
     contents = ''
     for account in accounts:
         for abook in accounts[account]['url']:
-            response = requests.get(abook+'/?export', auth = HTTPBasicAuth(accounts[account]['user'], accounts[account]['pass']))
-            contents = contents + str(response.content.decode('utf-8'))
+            try:
+                response = requests.get(abook+'/?export', auth = HTTPBasicAuth(accounts[account]['user'], accounts[account]['pass']))
+                contents = contents + str(response.content.decode('utf-8'))
+            except:
+                continue
     return contents
 
 def create_cards_list(file_content):

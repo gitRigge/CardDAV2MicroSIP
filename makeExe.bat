@@ -8,7 +8,7 @@ pyinstaller ^
     --distpath bin ^
     --clean ^
     --log-level INFO ^
-    --name "CardDAV2MicroSIP Bridge" ^
+    --name bridge ^
     --distpath release ^
     bridge.py
 pause

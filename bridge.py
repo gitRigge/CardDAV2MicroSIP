@@ -39,14 +39,21 @@ import requests
 import vobject
 from requests.auth import HTTPBasicAuth
 
-microSipDataPath = os.environ['APPDATA']+"\MicroSIP"
-bridgeDataPath = os.environ['LOCALAPPDATA']+"\CardDAV2MicroSIP"
+__author__ = 'Roland Rickborn'
+__copyright__ = 'Copyright (c) 2022 {}'.format(__author__)
+__version__ = '1.0'
+__url__ = 'https://github.com/gitRigge/CardDAV2MicroSIP'
+__license__ = 'MIT License (MIT)'
+
+microSipDataPath = os.environ['APPDATA']+'\MicroSIP'
+bridgeDataPath = os.environ['LOCALAPPDATA']+'\CardDAV2MicroSIP'
 bridge_config = configparser.ConfigParser()
 bridge_config.read(os.path.join(bridgeDataPath, 'bridge.conf'))
 microsip_config = configparser.ConfigParser()
 microsip_config.read_file(codecs.open(os.path.join(microSipDataPath, 'microsip.ini'), 'r', 'utf16'))
 
 def get_country_code():
+    """Tries to find country code info in MicroSIP config file and returns it."""
     p = re.compile('(\+[0-9]{1,3})')
     for section in microsip_config.sections():
         if microsip_config.has_option(section,'dialPlan'):
@@ -56,6 +63,7 @@ def get_country_code():
     return '+49'
 
 def get_carddav_data():
+    """Retrieves CardDAV data from all accounts specified in the bridge config and returns all content in one string"""
     accounts = {}
     servers = bridge_config.sections()
     counter = 1
@@ -82,6 +90,7 @@ def get_carddav_data():
     return contents
 
 def create_cards_list(file_content):
+    """Turns the given string into VCard objects and returns it as a list"""
     _l = str(file_content).replace('\\r\\n','\n').split('END:VCARD')
     _l.pop(-1)
     cards = []
@@ -95,10 +104,12 @@ def create_cards_list(file_content):
     return cards
 
 def nice_number(phone_number):
+    """Strips space, -, ( and ) from the given string, replaces counrty cody with 0 and returns the string"""
     nice_phone_number = phone_number.replace(get_country_code(),'0').replace(' ' ,'').replace('-' ,'').replace('(' ,'').replace(')' ,'').strip()
     return nice_phone_number
 
 def export_to_xml(items):
+    """Exports the given list into an XML file"""
     f = open(os.path.join(microSipDataPath, 'Contacts.xml'), 'w', encoding='utf8')
     f.write(u'\ufeff')
     f.write('<?xml version="1.0"?>\n')
@@ -124,6 +135,7 @@ def export_to_xml(items):
     f.close()
 
 def convert_file_into_xml(fileName):
+    """Converts the given file into an XML file"""
     card_list = create_cards_list(fileName)
     export_to_xml(card_list)
 

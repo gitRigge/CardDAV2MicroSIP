@@ -17,9 +17,9 @@ Or download the latest release from the [GitHub repo release folder](https://git
 
 ## Best practice
 Put a batch file into your Windows Startup folder like this:
-`echo Start CardDAV2MicroSIP`
-`start bridge.exe`
-`REM WAIT`
-`timeout 10`
-`echo Start MicroSIP`
-`start microsip.exe /minimized`
+
+    echo Start CardDAV2MicroSIP
+    start bridge.exe
+    timeout 10
+    echo Start MicroSIP
+    start microsip.exe /minimized

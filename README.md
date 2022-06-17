@@ -1,15 +1,25 @@
 # CardDAV2MicroSIP
-A bridge from cardDAV to the VoIP client MicroSIP
+A bridge from CardDAV to the VoIP client MicroSIP
 
 ## Introduction
 The script bridge.py is able to fetch address data from a CardDAV server. It then generates the file Contacts.xml which is used by the VoIP client MicroSIP as addressbook.
-The script setup.py generates a binary of the bridge which can be executed under Windows operating systems.
+The batch file makeExe.bat generates a binary of the bridge which can be executed under Windows operating systems.
 
-Tested with Python 3.8 and MicroSIP 3.21
+Tested with Python 3.8, NextCloud 20.0, MicroSIP 3.21
+
+## Build
+Just run makeExe.bat, wait until it ends and have a look at the release folder.
+Or download the latest release from the [GitHub repo release folder](https://github.com/gitRigge/CardDAV2MicroSIP/raw/master/release/bridge.zip)
 
 ## Howto
-1. Adapt the settings in bridge.conf to your needs
-2. Save bridge.conf in %LOCALAPPDATA%\CardDAV2MicroSIP
-3. Run makeExe.bat
-4. Place the resulting bridge.exe in the startup folder of the Windows start menu / Run bridge.exe
-5. Run MicroSIP
+1. Run bridge.exe and wait until it ends
+2. Run MicroSIP
+
+## Best practice
+Put a batch file into your Windows Startup folder like this:
+    echo Start CardDAV2MicroSIP
+    start bridge.exe
+    REM WAIT
+    timeout 10
+    echo Start MicroSIP
+    start microsip.exe /minimized

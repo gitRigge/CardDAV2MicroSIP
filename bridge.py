@@ -2,7 +2,7 @@
 
 # The MIT License (MIT)
 # 
-# Copyright (c) 2021, Roland Rickborn (r_2@gmx.net)
+# Copyright (c) 2022, Roland Rickborn (r_2@gmx.net)
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -25,36 +25,50 @@
 # Revision history:
 # 2021-03-25  Created
 # 2022-05-02  Replaced pyCardDAV with vobject
+# 2022-06-17  Added reading MicroSIP config to retrieve country code
 #
 # This script generates Contacts.xml valid for MicroSIP VoIP client v3.10
 # ---------------------------------------------------------------------------
 
-import requests
-import os
+import codecs
 import configparser
-import vobject
+import os
+import re
 
+import requests
+import vobject
 from requests.auth import HTTPBasicAuth
 
 microSipDataPath = os.environ['APPDATA']+"\MicroSIP"
 bridgeDataPath = os.environ['LOCALAPPDATA']+"\CardDAV2MicroSIP"
-config = configparser.ConfigParser()
-config.read(os.path.join(bridgeDataPath, 'bridge.conf'))
+bridge_config = configparser.ConfigParser()
+bridge_config.read(os.path.join(bridgeDataPath, 'bridge.conf'))
+microsip_config = configparser.ConfigParser()
+microsip_config.read_file(codecs.open(os.path.join(microSipDataPath, 'microsip.ini'), 'r', 'utf16'))
 
-def get():
+def get_country_code():
+    p = re.compile('(\+[0-9]{1,3})')
+    for section in microsip_config.sections():
+        if microsip_config.has_option(section,'dialPlan'):
+            m = p.search(microsip_config.get(section,'dialPlan'))
+            if m:
+                return m.group(1)
+    return '+49'
+
+def get_carddav_data():
     accounts = {}
-    servers = config.sections()
+    servers = bridge_config.sections()
     counter = 1
     for server in servers:
         accounts[counter] = {}
         _urls = []
-        for key in config[server]:
+        for key in bridge_config[server]:
             if key == 'user':
-                accounts[counter]['user'] = config[server]['user']
+                accounts[counter]['user'] = bridge_config[server]['user']
             elif key == 'pass':
-                accounts[counter]['pass'] = config[server]['pass']
+                accounts[counter]['pass'] = bridge_config[server]['pass']
             elif key.startswith('url'):
-                _urls.append(config[server][key])
+                _urls.append(bridge_config[server][key])
         accounts[counter]['url'] = _urls
         counter = counter + 1
     contents = ''
@@ -81,7 +95,7 @@ def create_cards_list(file_content):
     return cards
 
 def nice_number(phone_number):
-    nice_phone_number = phone_number.replace('+49','0').replace(' ' ,'').replace('-' ,'').replace('(' ,'').replace(')' ,'').strip()
+    nice_phone_number = phone_number.replace(get_country_code(),'0').replace(' ' ,'').replace('-' ,'').replace('(' ,'').replace(')' ,'').strip()
     return nice_phone_number
 
 def export_to_xml(items):
@@ -109,9 +123,9 @@ def export_to_xml(items):
     f.write('</contacts>\n')
     f.close()
 
-def convert(fileName):
+def convert_file_into_xml(fileName):
     card_list = create_cards_list(fileName)
     export_to_xml(card_list)
 
-vcf = get()
-convert(vcf)
+vcf = get_carddav_data()
+convert_file_into_xml(vcf)
